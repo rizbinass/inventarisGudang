@@ -1,25 +1,46 @@
 package view.dashboard;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import config.DatabaseConnection;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.format.DateTimeFormatter;
 
 public class DashboardPanel extends JPanel {
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    private final JLabel totalBarangValueLabel;
+    private final JLabel totalKategoriValueLabel;
+    private final JLabel barangMasukValueLabel;
+    private final JLabel barangKeluarValueLabel;
     private final JTable recentTransactionsTable;
+    private final DefaultTableModel tableModel;
 
     public DashboardPanel() {
+        totalBarangValueLabel = new JLabel("0");
+        totalKategoriValueLabel = new JLabel("0");
+        barangMasukValueLabel = new JLabel("0");
+        barangKeluarValueLabel = new JLabel("0");
         recentTransactionsTable = new JTable();
+        tableModel = createTableModel();
 
         initializeLayout();
         initializeTable();
+        loadDashboardData();
     }
 
     private void initializeLayout() {
@@ -30,14 +51,14 @@ public class DashboardPanel extends JPanel {
         ));
         setBackground(new Color(245, 247, 250));
 
-        add(createSummaryCard("Total Barang", "128", "Item tersedia"), "growx");
-        add(createSummaryCard("Kategori", "12", "Jenis barang"), "growx");
-        add(createSummaryCard("Barang Masuk", "34", "Transaksi bulan ini"), "growx");
-        add(createSummaryCard("Barang Keluar", "21", "Transaksi bulan ini"), "growx,wrap");
+        add(createSummaryCard("Total Barang", totalBarangValueLabel, "Item tersedia"), "growx");
+        add(createSummaryCard("Total Kategori", totalKategoriValueLabel, "Jenis barang"), "growx");
+        add(createSummaryCard("Barang Masuk", barangMasukValueLabel, "Total transaksi masuk"), "growx");
+        add(createSummaryCard("Barang Keluar", barangKeluarValueLabel, "Total transaksi keluar"), "growx,wrap");
         add(createRecentTransactionsPanel(), "span,grow");
     }
 
-    private JPanel createSummaryCard(String title, String value, String description) {
+    private JPanel createSummaryCard(String title, JLabel valueLabel, String description) {
         JPanel card = new JPanel(new MigLayout(
                 "wrap 1,fillx,insets 20",
                 "[grow]",
@@ -50,8 +71,6 @@ public class DashboardPanel extends JPanel {
 
         JLabel titleLabel = new JLabel(title);
         titleLabel.putClientProperty(FlatClientProperties.STYLE, "foreground:$Label.disabledForeground");
-
-        JLabel valueLabel = new JLabel(value);
         valueLabel.putClientProperty(FlatClientProperties.STYLE, "font:bold +16");
 
         JLabel descriptionLabel = new JLabel(description);
@@ -85,25 +104,96 @@ public class DashboardPanel extends JPanel {
     }
 
     private void initializeTable() {
-        DefaultTableModel tableModel = new DefaultTableModel(
-                new Object[][]{
-                        {"TRX-001", "Keyboard Mechanical", "Masuk", 10, "2026-06-30"},
-                        {"TRX-002", "Mouse Wireless", "Keluar", 4, "2026-06-30"},
-                        {"TRX-003", "Monitor 24 Inch", "Masuk", 6, "2026-06-29"},
-                        {"TRX-004", "Kabel HDMI", "Keluar", 12, "2026-06-29"},
-                        {"TRX-005", "Printer Laser", "Masuk", 2, "2026-06-28"}
-                },
-                new String[]{"Kode", "Barang", "Jenis", "Jumlah", "Tanggal"}
+        recentTransactionsTable.setModel(tableModel);
+        recentTransactionsTable.setRowHeight(36);
+        recentTransactionsTable.setShowGrid(false);
+        recentTransactionsTable.getTableHeader().setReorderingAllowed(false);
+    }
+
+    private DefaultTableModel createTableModel() {
+        return new DefaultTableModel(
+                new String[]{"ID", "Barang", "Jenis", "Jumlah", "Tanggal"},
+                0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
+    }
 
-        recentTransactionsTable.setModel(tableModel);
-        recentTransactionsTable.setRowHeight(36);
-        recentTransactionsTable.setShowGrid(false);
-        recentTransactionsTable.getTableHeader().setReorderingAllowed(false);
+    public void loadDashboardData() {
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            totalBarangValueLabel.setText(String.valueOf(countRows(connection, "barang")));
+            totalKategoriValueLabel.setText(String.valueOf(countRows(connection, "kategori")));
+            barangMasukValueLabel.setText(String.valueOf(sumTransaksiJumlah(connection, "Masuk")));
+            barangKeluarValueLabel.setText(String.valueOf(sumTransaksiJumlah(connection, "Keluar")));
+            loadRecentTransactions(connection);
+        } catch (SQLException exception) {
+            showErrorMessage("Gagal memuat data dashboard.");
+        }
+    }
+
+    private int countRows(Connection connection, String tableName) throws SQLException {
+        String sql = "SELECT COUNT(*) AS total FROM " + tableName;
+
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            if (resultSet.next()) {
+                return resultSet.getInt("total");
+            }
+        }
+
+        return 0;
+    }
+
+    private int sumTransaksiJumlah(Connection connection, String jenisTransaksi) throws SQLException {
+        String sql = "SELECT COALESCE(SUM(jumlah), 0) AS total FROM transaksi WHERE jenis_transaksi = ?";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, jenisTransaksi);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("total");
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    private void loadRecentTransactions(Connection connection) throws SQLException {
+        String sql = """
+                SELECT t.id, b.nama_barang, t.jenis_transaksi, t.jumlah, t.tanggal_transaksi
+                FROM transaksi t
+                JOIN barang b ON t.barang_id = b.id
+                ORDER BY t.tanggal_transaksi DESC, t.id DESC
+                LIMIT 10
+                """;
+
+        tableModel.setRowCount(0);
+
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                tableModel.addRow(new Object[]{
+                        resultSet.getInt("id"),
+                        resultSet.getString("nama_barang"),
+                        resultSet.getString("jenis_transaksi"),
+                        resultSet.getInt("jumlah"),
+                        resultSet.getTimestamp("tanggal_transaksi").toLocalDateTime().format(DATE_TIME_FORMATTER)
+                });
+            }
+        }
+    }
+
+    private void showErrorMessage(String message) {
+        JOptionPane.showMessageDialog(
+                SwingUtilities.getWindowAncestor(this),
+                message,
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+        );
     }
 }

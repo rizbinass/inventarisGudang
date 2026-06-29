@@ -2,6 +2,7 @@ package view;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
+import view.dashboard.DashboardPanel;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -89,7 +90,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createContentPanel() {
-        contentPanel.add(createPlaceholderPanel("Dashboard"), DASHBOARD_CARD);
+        contentPanel.add(new DashboardPanel(), DASHBOARD_CARD);
         contentPanel.add(createPlaceholderPanel("Barang"), BARANG_CARD);
         contentPanel.add(createPlaceholderPanel("Kategori"), KATEGORI_CARD);
         contentPanel.add(createPlaceholderPanel("Transaksi"), TRANSAKSI_CARD);
