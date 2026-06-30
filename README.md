@@ -21,6 +21,8 @@ Aplikasi desktop untuk mengelola inventaris gudang menggunakan Java Swing, FlatL
 
 ## Demo Mini
 
+![Warehouse pew pew animation](docs/assets/warehouse-pew-pew.svg)
+
 ```text
 Frame 1:  [Gudang]  📦───────>  stok aman
 Frame 2:  [Gudang]  📦── pew ─>  barang masuk
