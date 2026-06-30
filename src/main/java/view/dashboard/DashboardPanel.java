@@ -3,6 +3,8 @@ package view.dashboard;
 import com.formdev.flatlaf.FlatClientProperties;
 import config.DatabaseConnection;
 import net.miginfocom.swing.MigLayout;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import org.kordamp.ikonli.swing.FontIcon;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -14,6 +16,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,6 +26,8 @@ import java.time.format.DateTimeFormatter;
 
 public class DashboardPanel extends JPanel {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final Color BACKGROUND_COLOR = new Color(248, 250, 252);
+    private static final Color CARD_HOVER_COLOR = new Color(241, 245, 249);
 
     private final JLabel totalBarangValueLabel;
     private final JLabel totalKategoriValueLabel;
@@ -45,29 +51,30 @@ public class DashboardPanel extends JPanel {
 
     private void initializeLayout() {
         setLayout(new MigLayout(
-                "fill,insets 28",
+                "fill,insets 32",
                 "[grow][grow][grow][grow]",
-                "[][grow]"
+                "[]24[grow]"
         ));
-        setBackground(new Color(245, 247, 250));
+        setBackground(BACKGROUND_COLOR);
 
-        add(createSummaryCard("Total Barang", totalBarangValueLabel, "Item tersedia"), "growx");
-        add(createSummaryCard("Total Kategori", totalKategoriValueLabel, "Jenis barang"), "growx");
-        add(createSummaryCard("Barang Masuk", barangMasukValueLabel, "Total transaksi masuk"), "growx");
-        add(createSummaryCard("Barang Keluar", barangKeluarValueLabel, "Total transaksi keluar"), "growx,wrap");
+        add(createSummaryCard("Total Barang", totalBarangValueLabel, "Item tersedia", FontAwesomeSolid.BOX), "growx");
+        add(createSummaryCard("Total Kategori", totalKategoriValueLabel, "Jenis barang", FontAwesomeSolid.TAGS), "growx");
+        add(createSummaryCard("Barang Masuk", barangMasukValueLabel, "Total transaksi masuk", FontAwesomeSolid.PLUS_CIRCLE), "growx");
+        add(createSummaryCard("Barang Keluar", barangKeluarValueLabel, "Total transaksi keluar", FontAwesomeSolid.EXCHANGE_ALT), "growx,wrap");
         add(createRecentTransactionsPanel(), "span,grow");
     }
 
-    private JPanel createSummaryCard(String title, JLabel valueLabel, String description) {
+    private JPanel createSummaryCard(String title, JLabel valueLabel, String description, FontAwesomeSolid icon) {
         JPanel card = new JPanel(new MigLayout(
-                "wrap 1,fillx,insets 20",
-                "[grow]",
+                "fillx,insets 22",
+                "[grow][]",
                 "[]8[]8[]"
         ));
         card.putClientProperty(FlatClientProperties.STYLE, ""
-                + "arc:12;"
+                + "arc:18;"
                 + "background:$Panel.background;"
                 + "border:1,1,1,1,$Component.borderColor");
+        addCardHover(card);
 
         JLabel titleLabel = new JLabel(title);
         titleLabel.putClientProperty(FlatClientProperties.STYLE, "foreground:$Label.disabledForeground");
@@ -76,9 +83,13 @@ public class DashboardPanel extends JPanel {
         JLabel descriptionLabel = new JLabel(description);
         descriptionLabel.putClientProperty(FlatClientProperties.STYLE, "foreground:$Label.disabledForeground");
 
-        card.add(titleLabel);
-        card.add(valueLabel);
-        card.add(descriptionLabel);
+        JLabel iconLabel = new JLabel(FontIcon.of(icon, 22, new Color(37, 99, 235)));
+        iconLabel.putClientProperty(FlatClientProperties.STYLE, "arc:14;background:#EFF6FF;border:10,10,10,10,#EFF6FF");
+
+        card.add(titleLabel, "cell 0 0");
+        card.add(iconLabel, "cell 1 0 1 2,align center top");
+        card.add(valueLabel, "cell 0 1");
+        card.add(descriptionLabel, "cell 0 2");
 
         return card;
     }
@@ -86,11 +97,14 @@ public class DashboardPanel extends JPanel {
     private JPanel createRecentTransactionsPanel() {
         JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.putClientProperty(FlatClientProperties.STYLE, ""
-                + "arc:12;"
+                + "arc:18;"
                 + "background:$Panel.background;"
                 + "border:1,1,1,1,$Component.borderColor");
+        addCardHover(panel);
 
         JLabel titleLabel = new JLabel("Transaksi Terbaru");
+        titleLabel.setIcon(FontIcon.of(FontAwesomeSolid.EXCHANGE_ALT, 16, new Color(37, 99, 235)));
+        titleLabel.setIconTextGap(10);
         titleLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 20, 0, 20));
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 18F));
 
@@ -108,6 +122,20 @@ public class DashboardPanel extends JPanel {
         recentTransactionsTable.setRowHeight(36);
         recentTransactionsTable.setShowGrid(false);
         recentTransactionsTable.getTableHeader().setReorderingAllowed(false);
+    }
+
+    private void addCardHover(JPanel panel) {
+        panel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent event) {
+                panel.setBackground(CARD_HOVER_COLOR);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent event) {
+                panel.setBackground(null);
+            }
+        });
     }
 
     private DefaultTableModel createTableModel() {

@@ -4,6 +4,8 @@ import com.formdev.flatlaf.FlatClientProperties;
 import dao.KategoriDAO;
 import model.Kategori;
 import net.miginfocom.swing.MigLayout;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import org.kordamp.ikonli.swing.FontIcon;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -20,10 +22,16 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.util.List;
 
 public class KategoriPanel extends JPanel {
+    private static final Color BACKGROUND_COLOR = new Color(248, 250, 252);
+    private static final Color BUTTON_HOVER_COLOR = new Color(226, 232, 240);
+    private static final Color CARD_HOVER_COLOR = new Color(241, 245, 249);
+
     private final KategoriDAO kategoriDAO;
     private final JTextField searchField;
     private final JButton addButton;
@@ -47,18 +55,19 @@ public class KategoriPanel extends JPanel {
 
         initializeLayout();
         initializeTable();
+        initializeIcons();
         initializeActions();
         loadKategoriData();
     }
 
     private void initializeLayout() {
         setLayout(new BorderLayout());
-        setBackground(new Color(245, 247, 250));
+        setBackground(BACKGROUND_COLOR);
 
         JPanel containerPanel = new JPanel(new MigLayout(
-                "fill,insets 28",
+                "fill,insets 32",
                 "[grow]",
-                "[][grow]"
+                "[]20[grow]"
         ));
         containerPanel.setOpaque(false);
 
@@ -71,13 +80,13 @@ public class KategoriPanel extends JPanel {
     private JPanel createToolbarPanel() {
         JPanel toolbarPanel = new JPanel(new MigLayout(
                 "fillx,insets 0",
-                "[grow][]8[]8[]8[]8[]",
+                "[grow][]10[]10[]10[]10[]",
                 "[]"
         ));
         toolbarPanel.setOpaque(false);
 
         searchField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Cari kategori...");
-        searchField.putClientProperty(FlatClientProperties.STYLE, "arc:10");
+        searchField.putClientProperty(FlatClientProperties.STYLE, "arc:12;margin:8,12,8,12");
 
         styleButton(addButton);
         styleButton(editButton);
@@ -96,11 +105,14 @@ public class KategoriPanel extends JPanel {
     private JPanel createTablePanel() {
         JPanel tablePanel = new JPanel(new BorderLayout(0, 16));
         tablePanel.putClientProperty(FlatClientProperties.STYLE, ""
-                + "arc:12;"
+                + "arc:18;"
                 + "background:$Panel.background;"
                 + "border:1,1,1,1,$Component.borderColor");
+        addCardHover(tablePanel);
 
         JLabel titleLabel = new JLabel("Data Kategori");
+        titleLabel.setIcon(FontIcon.of(FontAwesomeSolid.TAGS, 16, new Color(37, 99, 235)));
+        titleLabel.setIconTextGap(10);
         titleLabel.putClientProperty(FlatClientProperties.STYLE, "font:bold +4");
         titleLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 20, 0, 20));
 
@@ -121,10 +133,48 @@ public class KategoriPanel extends JPanel {
         kategoriTable.getTableHeader().setReorderingAllowed(false);
     }
 
+    private void initializeIcons() {
+        addButton.setIcon(FontIcon.of(FontAwesomeSolid.PLUS, 13));
+        editButton.setIcon(FontIcon.of(FontAwesomeSolid.PEN, 13));
+        deleteButton.setIcon(FontIcon.of(FontAwesomeSolid.TRASH_ALT, 13));
+        refreshButton.setIcon(FontIcon.of(FontAwesomeSolid.SYNC_ALT, 13));
+
+        addButton.setIconTextGap(8);
+        editButton.setIconTextGap(8);
+        deleteButton.setIconTextGap(8);
+        refreshButton.setIconTextGap(8);
+    }
+
     private void styleButton(JButton button) {
         button.putClientProperty(FlatClientProperties.STYLE, ""
-                + "arc:10;"
-                + "margin:8,14,8,14");
+                + "arc:12;"
+                + "focusWidth:0;"
+                + "margin:9,16,9,16");
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent event) {
+                button.setBackground(BUTTON_HOVER_COLOR);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent event) {
+                button.setBackground(null);
+            }
+        });
+    }
+
+    private void addCardHover(JPanel panel) {
+        panel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent event) {
+                panel.setBackground(CARD_HOVER_COLOR);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent event) {
+                panel.setBackground(null);
+            }
+        });
     }
 
     private DefaultTableModel createTableModel() {

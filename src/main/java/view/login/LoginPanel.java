@@ -4,6 +4,8 @@ import com.formdev.flatlaf.FlatClientProperties;
 import dao.UserDAO;
 import model.User;
 import net.miginfocom.swing.MigLayout;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import org.kordamp.ikonli.swing.FontIcon;
 import org.mindrot.jbcrypt.BCrypt;
 
 import javax.swing.JButton;
@@ -20,10 +22,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Window;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.util.List;
 
 public class LoginPanel extends JPanel {
+    private static final Color BACKGROUND_COLOR = new Color(248, 250, 252);
+    private static final Color BUTTON_HOVER_COLOR = new Color(29, 78, 216);
+
     private final UserDAO userDAO;
     private final JTextField usernameField;
     private final JPasswordField passwordField;
@@ -43,7 +50,7 @@ public class LoginPanel extends JPanel {
 
     private void initializeLayout() {
         setLayout(new BorderLayout());
-        setBackground(new Color(245, 247, 250));
+        setBackground(BACKGROUND_COLOR);
 
         JPanel contentPanel = new JPanel(new MigLayout(
                 "fill,insets 0",
@@ -53,16 +60,18 @@ public class LoginPanel extends JPanel {
         contentPanel.setOpaque(false);
 
         JPanel loginCard = new JPanel(new MigLayout(
-                "wrap 1,fillx,insets 36 40 36 40",
+                "wrap 1,fillx,insets 40 44 40 44",
                 "[360!,fill]",
                 "[]18[]8[]16[]8[]12[]22[]"
         ));
         loginCard.putClientProperty(FlatClientProperties.STYLE, ""
-                + "arc:16;"
+                + "arc:20;"
                 + "background:$Panel.background;"
                 + "border:1,1,1,1,$Component.borderColor");
 
         JLabel titleLabel = new JLabel("Inventaris Gudang");
+        titleLabel.setIcon(FontIcon.of(FontAwesomeSolid.BOXES, 24, new Color(37, 99, 235)));
+        titleLabel.setIconTextGap(12);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         titleLabel.putClientProperty(FlatClientProperties.STYLE, "font:bold +10");
 
@@ -71,17 +80,36 @@ public class LoginPanel extends JPanel {
         subtitleLabel.putClientProperty(FlatClientProperties.STYLE, "foreground:$Label.disabledForeground");
 
         JLabel usernameLabel = new JLabel("Username");
+        usernameLabel.setIcon(FontIcon.of(FontAwesomeSolid.USER, 13, new Color(100, 116, 139)));
+        usernameLabel.setIconTextGap(8);
         usernameLabel.setFont(usernameLabel.getFont().deriveFont(Font.BOLD));
         usernameField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Masukkan username");
+        usernameField.putClientProperty(FlatClientProperties.STYLE, "arc:12;margin:8,12,8,12");
 
         JLabel passwordLabel = new JLabel("Password");
+        passwordLabel.setIcon(FontIcon.of(FontAwesomeSolid.LOCK, 13, new Color(100, 116, 139)));
+        passwordLabel.setIconTextGap(8);
         passwordLabel.setFont(passwordLabel.getFont().deriveFont(Font.BOLD));
         passwordField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Masukkan password");
+        passwordField.putClientProperty(FlatClientProperties.STYLE, "arc:12;margin:8,12,8,12");
 
+        loginButton.setIcon(FontIcon.of(FontAwesomeSolid.SIGN_IN_ALT, 14));
+        loginButton.setIconTextGap(8);
         loginButton.putClientProperty(FlatClientProperties.STYLE, ""
-                + "arc:10;"
+                + "arc:12;"
                 + "font:bold +1;"
-                + "margin:8,12,8,12");
+                + "margin:10,14,10,14");
+        loginButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent event) {
+                loginButton.setBackground(BUTTON_HOVER_COLOR);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent event) {
+                loginButton.setBackground(null);
+            }
+        });
 
         loginCard.add(titleLabel);
         loginCard.add(subtitleLabel);
