@@ -34,11 +34,13 @@ public class MainFrame extends JFrame {
     private final CardLayout cardLayout;
     private final JPanel contentPanel;
     private final JLabel headerTitleLabel;
+    private final DashboardPanel dashboardPanel;
 
     public MainFrame() {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         headerTitleLabel = new JLabel("Dashboard");
+        dashboardPanel = new DashboardPanel();
 
         initializeFrame();
         initializeLayout();
@@ -108,7 +110,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createContentPanel() {
-        contentPanel.add(new DashboardPanel(), DASHBOARD_CARD);
+        contentPanel.add(dashboardPanel, DASHBOARD_CARD);
         contentPanel.add(new BarangPanel(), BARANG_CARD);
         contentPanel.add(new KategoriPanel(), KATEGORI_CARD);
         contentPanel.add(new TransaksiPanel(), TRANSAKSI_CARD);
@@ -145,6 +147,9 @@ public class MainFrame extends JFrame {
 
     private void showPage(String title, String cardName) {
         headerTitleLabel.setText(title);
+        if (DASHBOARD_CARD.equals(cardName)) {
+            dashboardPanel.loadDashboardData();
+        }
         cardLayout.show(contentPanel, cardName);
     }
 }
