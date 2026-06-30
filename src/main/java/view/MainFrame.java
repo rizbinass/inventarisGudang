@@ -4,7 +4,10 @@ import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.swing.FontIcon;
+import view.barang.BarangPanel;
 import view.dashboard.DashboardPanel;
+import view.kategori.KategoriPanel;
+import view.transaksi.TransaksiPanel;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -106,9 +109,9 @@ public class MainFrame extends JFrame {
 
     private JPanel createContentPanel() {
         contentPanel.add(new DashboardPanel(), DASHBOARD_CARD);
-        contentPanel.add(createPlaceholderPanel("Barang"), BARANG_CARD);
-        contentPanel.add(createPlaceholderPanel("Kategori"), KATEGORI_CARD);
-        contentPanel.add(createPlaceholderPanel("Transaksi"), TRANSAKSI_CARD);
+        contentPanel.add(new BarangPanel(), BARANG_CARD);
+        contentPanel.add(new KategoriPanel(), KATEGORI_CARD);
+        contentPanel.add(new TransaksiPanel(), TRANSAKSI_CARD);
 
         return contentPanel;
     }
@@ -138,22 +141,6 @@ public class MainFrame extends JFrame {
         });
         button.addActionListener(event -> showPage(text, cardName));
         return button;
-    }
-
-    private JPanel createPlaceholderPanel(String title) {
-        JPanel panel = new JPanel(new MigLayout(
-                "fill,insets 32",
-                "[grow]",
-                "[grow]"
-        ));
-        panel.setBackground(CONTENT_BACKGROUND);
-
-        JLabel label = new JLabel(title);
-        label.setHorizontalAlignment(SwingConstants.CENTER);
-        label.putClientProperty(FlatClientProperties.STYLE, "font:bold +12;foreground:$Label.disabledForeground");
-
-        panel.add(label, "align center");
-        return panel;
     }
 
     private void showPage(String title, String cardName) {

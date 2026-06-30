@@ -25,7 +25,6 @@ import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
-import java.util.List;
 
 public class LoginPanel extends JPanel {
     private static final Color BACKGROUND_COLOR = new Color(248, 250, 252);
@@ -175,12 +174,10 @@ public class LoginPanel extends JPanel {
     }
 
     private User authenticate(String username, String password) throws SQLException {
-        List<User> users = userDAO.findAll();
+        User user = userDAO.findByUsername(username);
 
-        for (User user : users) {
-            if (username.equals(user.getUsername()) && isPasswordValid(password, user.getPassword())) {
-                return user;
-            }
+        if (user != null && isPasswordValid(password, user.getPassword())) {
+            return user;
         }
 
         return null;

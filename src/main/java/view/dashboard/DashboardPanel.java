@@ -152,8 +152,8 @@ public class DashboardPanel extends JPanel {
 
     public void loadDashboardData() {
         try (Connection connection = DatabaseConnection.getConnection()) {
-            totalBarangValueLabel.setText(String.valueOf(countRows(connection, "barang")));
-            totalKategoriValueLabel.setText(String.valueOf(countRows(connection, "kategori")));
+            totalBarangValueLabel.setText(String.valueOf(countBarang(connection)));
+            totalKategoriValueLabel.setText(String.valueOf(countKategori(connection)));
             barangMasukValueLabel.setText(String.valueOf(sumTransaksiJumlah(connection, "Masuk")));
             barangKeluarValueLabel.setText(String.valueOf(sumTransaksiJumlah(connection, "Keluar")));
             loadRecentTransactions(connection);
@@ -162,8 +162,21 @@ public class DashboardPanel extends JPanel {
         }
     }
 
-    private int countRows(Connection connection, String tableName) throws SQLException {
-        String sql = "SELECT COUNT(*) AS total FROM " + tableName;
+    private int countBarang(Connection connection) throws SQLException {
+        String sql = "SELECT COUNT(*) AS total FROM barang";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            if (resultSet.next()) {
+                return resultSet.getInt("total");
+            }
+        }
+
+        return 0;
+    }
+
+    private int countKategori(Connection connection) throws SQLException {
+        String sql = "SELECT COUNT(*) AS total FROM kategori";
 
         try (PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {

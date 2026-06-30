@@ -8,12 +8,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class BarangDAO {
     public void create(Barang barang) throws SQLException {
+        validateBarang(barang);
         String sql = "INSERT INTO barang (kode_barang, nama_barang, kategori_id, stok, satuan) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection connection = DatabaseConnection.getConnection();
@@ -61,10 +62,11 @@ public class BarangDAO {
         List<Barang> barangList = new ArrayList<>();
 
         try (Connection connection = DatabaseConnection.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
-            while (resultSet.next()) {
-                barangList.add(mapResultSetToBarang(resultSet));
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    barangList.add(mapResultSetToBarang(resultSet));
+                }
             }
         }
 
@@ -72,6 +74,7 @@ public class BarangDAO {
     }
 
     public void update(Barang barang) throws SQLException {
+        validateBarang(barang);
         String sql = "UPDATE barang SET kode_barang = ?, nama_barang = ?, kategori_id = ?, stok = ?, satuan = ? WHERE id = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
@@ -110,5 +113,13 @@ public class BarangDAO {
                 resultSet.getInt("stok"),
                 resultSet.getString("satuan")
         );
+    }
+
+    private void validateBarang(Barang barang) {
+        Objects.requireNonNull(barang, "barang");
+        Objects.requireNonNull(barang.getKategori(), "barang.kategori");
+        if (barang.getStok() < 0) {
+            throw new IllegalArgumentException("barang.stok must be greater than or equal to zero");
+        }
     }
 }

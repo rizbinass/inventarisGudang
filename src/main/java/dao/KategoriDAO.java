@@ -7,12 +7,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class KategoriDAO {
     public void create(Kategori kategori) throws SQLException {
+        Objects.requireNonNull(kategori, "kategori");
         String sql = "INSERT INTO kategori (nama_kategori) VALUES (?)";
 
         try (Connection connection = DatabaseConnection.getConnection();
@@ -44,10 +45,11 @@ public class KategoriDAO {
         List<Kategori> kategoriList = new ArrayList<>();
 
         try (Connection connection = DatabaseConnection.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
-            while (resultSet.next()) {
-                kategoriList.add(mapResultSetToKategori(resultSet));
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    kategoriList.add(mapResultSetToKategori(resultSet));
+                }
             }
         }
 
@@ -55,6 +57,7 @@ public class KategoriDAO {
     }
 
     public void update(Kategori kategori) throws SQLException {
+        Objects.requireNonNull(kategori, "kategori");
         String sql = "UPDATE kategori SET nama_kategori = ? WHERE id = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();

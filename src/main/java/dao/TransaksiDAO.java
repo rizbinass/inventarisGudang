@@ -10,13 +10,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class TransaksiDAO {
     public void create(Transaksi transaksi) throws SQLException {
+        validateTransaksi(transaksi);
         String sql = "INSERT INTO transaksi (barang_id, user_id, jenis_transaksi, jumlah, tanggal_transaksi) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection connection = DatabaseConnection.getConnection()) {
@@ -85,10 +86,11 @@ public class TransaksiDAO {
         List<Transaksi> transaksiList = new ArrayList<>();
 
         try (Connection connection = DatabaseConnection.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
-            while (resultSet.next()) {
-                transaksiList.add(mapResultSetToTransaksi(resultSet));
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    transaksiList.add(mapResultSetToTransaksi(resultSet));
+                }
             }
         }
 
@@ -96,6 +98,7 @@ public class TransaksiDAO {
     }
 
     public void update(Transaksi transaksi) throws SQLException {
+        validateTransaksi(transaksi);
         String sql = "UPDATE transaksi SET barang_id = ?, user_id = ?, jenis_transaksi = ?, jumlah = ?, tanggal_transaksi = ? WHERE id = ?";
 
         try (Connection connection = DatabaseConnection.getConnection()) {
@@ -204,6 +207,21 @@ public class TransaksiDAO {
         }
 
         return -transaksi.getJumlah();
+    }
+
+    private void validateTransaksi(Transaksi transaksi) {
+        Objects.requireNonNull(transaksi, "transaksi");
+        Objects.requireNonNull(transaksi.getBarang(), "transaksi.barang");
+        Objects.requireNonNull(transaksi.getUser(), "transaksi.user");
+        Objects.requireNonNull(transaksi.getJenisTransaksi(), "transaksi.jenisTransaksi");
+        Objects.requireNonNull(transaksi.getTanggalTransaksi(), "transaksi.tanggalTransaksi");
+        if (!"Masuk".equalsIgnoreCase(transaksi.getJenisTransaksi())
+                && !"Keluar".equalsIgnoreCase(transaksi.getJenisTransaksi())) {
+            throw new IllegalArgumentException("transaksi.jenisTransaksi must be Masuk or Keluar");
+        }
+        if (transaksi.getJumlah() <= 0) {
+            throw new IllegalArgumentException("transaksi.jumlah must be greater than zero");
+        }
     }
 
     private Transaksi mapResultSetToTransaksi(ResultSet resultSet) throws SQLException {

@@ -1,12 +1,16 @@
 package view.register;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import dao.UserDAO;
+import model.User;
 import net.miginfocom.swing.MigLayout;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.swing.FontIcon;
+import org.mindrot.jbcrypt.BCrypt;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -16,6 +20,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.SQLException;
 
 public class RegisterPanel extends JPanel {
     private static final Color BACKGROUND_COLOR = new Color(248, 250, 252);
@@ -26,8 +31,10 @@ public class RegisterPanel extends JPanel {
     private final JPasswordField passwordField;
     private final JPasswordField confirmPasswordField;
     private final JButton registerButton;
+    private final UserDAO userDAO;
 
     public RegisterPanel() {
+        userDAO = new UserDAO();
         nameField = new JTextField();
         usernameField = new JTextField();
         passwordField = new JPasswordField();
@@ -35,6 +42,7 @@ public class RegisterPanel extends JPanel {
         registerButton = new JButton("Daftar");
 
         initializeLayout();
+        initializeActions();
     }
 
     private void initializeLayout() {
@@ -124,6 +132,69 @@ public class RegisterPanel extends JPanel {
 
         contentPanel.add(registerCard, "align center");
         add(contentPanel, BorderLayout.CENTER);
+    }
+
+    private void initializeActions() {
+        registerButton.addActionListener(event -> register());
+        confirmPasswordField.addActionListener(event -> register());
+    }
+
+    private void register() {
+        String nama = nameField.getText().trim();
+        String username = usernameField.getText().trim();
+        String password = new String(passwordField.getPassword());
+        String confirmPassword = new String(confirmPasswordField.getPassword());
+
+        if (nama.isEmpty() || username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            showWarningMessage("Semua field wajib diisi.");
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            showWarningMessage("Konfirmasi password tidak sesuai.");
+            return;
+        }
+
+        try {
+            if (userDAO.findByUsername(username) != null) {
+                showWarningMessage("Username sudah digunakan.");
+                return;
+            }
+
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+            userDAO.create(new User(0, username, hashedPassword, nama));
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Registrasi berhasil.",
+                    "Register",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            clearForm();
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Registrasi gagal. Tidak dapat menyimpan user.",
+                    "Register Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    private void clearForm() {
+        nameField.setText("");
+        usernameField.setText("");
+        passwordField.setText("");
+        confirmPasswordField.setText("");
+    }
+
+    private void showWarningMessage(String message) {
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Peringatan",
+                JOptionPane.WARNING_MESSAGE
+        );
     }
 
     private JLabel createFieldLabel(String text) {

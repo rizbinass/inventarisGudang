@@ -7,12 +7,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class UserDAO {
     public void create(User user) throws SQLException {
+        Objects.requireNonNull(user, "user");
         String sql = "INSERT INTO users (username, password, nama) VALUES (?, ?, ?)";
 
         try (Connection connection = DatabaseConnection.getConnection();
@@ -41,15 +42,33 @@ public class UserDAO {
         return null;
     }
 
+    public User findByUsername(String username) throws SQLException {
+        String sql = "SELECT id, username, password, nama FROM users WHERE username = ?";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, username);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return mapResultSetToUser(resultSet);
+                }
+            }
+        }
+
+        return null;
+    }
+
     public List<User> findAll() throws SQLException {
         String sql = "SELECT id, username, password, nama FROM users ORDER BY id";
         List<User> users = new ArrayList<>();
 
         try (Connection connection = DatabaseConnection.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
-            while (resultSet.next()) {
-                users.add(mapResultSetToUser(resultSet));
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    users.add(mapResultSetToUser(resultSet));
+                }
             }
         }
 
@@ -57,6 +76,7 @@ public class UserDAO {
     }
 
     public void update(User user) throws SQLException {
+        Objects.requireNonNull(user, "user");
         String sql = "UPDATE users SET username = ?, password = ?, nama = ? WHERE id = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
