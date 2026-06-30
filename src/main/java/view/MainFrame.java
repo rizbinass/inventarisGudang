@@ -113,7 +113,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(dashboardPanel, DASHBOARD_CARD);
         contentPanel.add(new BarangPanel(), BARANG_CARD);
         contentPanel.add(new KategoriPanel(), KATEGORI_CARD);
-        contentPanel.add(new TransaksiPanel(), TRANSAKSI_CARD);
+        contentPanel.add(new TransaksiPanel(dashboardPanel::loadDashboardData), TRANSAKSI_CARD);
 
         return contentPanel;
     }

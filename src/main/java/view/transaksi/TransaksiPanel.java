@@ -55,8 +55,14 @@ public class TransaksiPanel extends JPanel {
     private final JTable transaksiTable;
     private final DefaultTableModel tableModel;
     private final TableRowSorter<DefaultTableModel> tableSorter;
+    private final Runnable dataChangeListener;
 
     public TransaksiPanel() {
+        this(null);
+    }
+
+    public TransaksiPanel(Runnable dataChangeListener) {
+        this.dataChangeListener = dataChangeListener;
         transaksiDAO = new TransaksiDAO();
         barangDAO = new BarangDAO();
         userDAO = new UserDAO();
@@ -247,6 +253,7 @@ public class TransaksiPanel extends JPanel {
         try {
             transaksiDAO.create(transaksi);
             loadTransaksiData();
+            notifyDataChanged();
         } catch (SQLException exception) {
             showErrorMessage("Gagal menambahkan transaksi. Pastikan stok barang mencukupi.");
         }
@@ -294,6 +301,7 @@ public class TransaksiPanel extends JPanel {
         try {
             transaksiDAO.update(transaksi);
             loadTransaksiData();
+            notifyDataChanged();
         } catch (SQLException exception) {
             showErrorMessage("Gagal mengubah transaksi. Pastikan stok barang mencukupi.");
         }
@@ -323,8 +331,15 @@ public class TransaksiPanel extends JPanel {
         try {
             transaksiDAO.delete(id);
             loadTransaksiData();
+            notifyDataChanged();
         } catch (SQLException exception) {
             showErrorMessage("Gagal menghapus transaksi. Pastikan stok barang tetap valid.");
+        }
+    }
+
+    private void notifyDataChanged() {
+        if (dataChangeListener != null) {
+            dataChangeListener.run();
         }
     }
 
