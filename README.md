@@ -9,14 +9,25 @@
 Aplikasi desktop untuk mengelola inventaris gudang menggunakan Java Swing, FlatLaf, MigLayout, JDBC, dan MySQL.
 
 ```text
-┌───────────────────────────────────────────────────────────────┐
-│                    INVENTARIS GUDANG                          │
-├───────────────┬───────────────────────────────────────────────┤
-│ Dashboard     │ Total Barang | Total Kategori | Masuk | Keluar │
-│ Barang        │ CRUD barang + pencarian                       │
-│ Kategori      │ CRUD kategori + pencarian                     │
-│ Transaksi     │ CRUD transaksi + update stok otomatis         │
-└───────────────┴───────────────────────────────────────────────┘
+╔═══════════════════════════════════════════════════════════════╗
+║                 INVENTARIS GUDANG: JAVA QUEST                ║
+╠═══════════════╦═══════════════════════════════════════════════╣
+║ Dashboard     ║ Total Barang | Total Kategori | Masuk | Keluar ║
+║ Barang        ║ CRUD barang + pencarian                       ║
+║ Kategori      ║ CRUD kategori + pencarian                     ║
+║ Transaksi     ║ CRUD transaksi + update stok otomatis         ║
+╚═══════════════╩═══════════════════════════════════════════════╝
+```
+
+```text
+PLAYER PARTY
+┌────┬──────────────────────────────┬────────────────┐
+│ No │ Nama                         │ NIM            │
+├────┼──────────────────────────────┼────────────────┤
+│ 01 │ Rizky Bintang Assabil        │ 24011110168    │
+│ 02 │ Mulyono Dayat Tulloh         │ 24011110165    │
+│ 03 │ Rafi Zulkifli                │ 43A87006210173 │
+└────┴──────────────────────────────┴────────────────┘
 ```
 
 ## Demo Mini
@@ -185,6 +196,79 @@ Kalau ingin import manual, gunakan file:
 src/main/resources/database/inventaris_gudang.sql
 ```
 
+Atau jalankan SQL berikut di phpMyAdmin / MySQL client:
+
+```sql
+CREATE DATABASE IF NOT EXISTS inventaris_gudang;
+
+USE inventaris_gudang;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    nama VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS kategori (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nama_kategori VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS barang (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    kode_barang VARCHAR(50) NOT NULL UNIQUE,
+    nama_barang VARCHAR(150) NOT NULL,
+    kategori_id INT NOT NULL,
+    stok INT NOT NULL DEFAULT 0,
+    satuan VARCHAR(50) NOT NULL,
+    CONSTRAINT fk_barang_kategori
+        FOREIGN KEY (kategori_id)
+        REFERENCES kategori(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS transaksi (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    barang_id INT NOT NULL,
+    user_id INT NOT NULL,
+    jenis_transaksi ENUM('Masuk', 'Keluar') NOT NULL,
+    jumlah INT NOT NULL,
+    tanggal_transaksi DATETIME NOT NULL,
+    CONSTRAINT fk_transaksi_barang
+        FOREIGN KEY (barang_id)
+        REFERENCES barang(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_transaksi_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
+
+INSERT INTO users (username, password, nama)
+VALUES (
+    'admin',
+    '$2a$10$T4xu9TkAZ5RJXendAEgWS.nLhU4FH63zSKdVPvwWZKH6pTBvTEQRu',
+    'Administrator'
+)
+ON DUPLICATE KEY UPDATE
+    password = VALUES(password),
+    nama = VALUES(nama);
+
+INSERT INTO kategori (nama_kategori)
+VALUES
+    ('Elektronik'),
+    ('Aksesoris'),
+    ('Perangkat Kantor'),
+    ('ATK'),
+    ('Perlengkapan Gudang')
+ON DUPLICATE KEY UPDATE
+    nama_kategori = VALUES(nama_kategori);
+```
+
 ## Akun Default
 
 ```text
@@ -245,3 +329,13 @@ git commit -m "docs: add project README"
 ## License
 
 Project ini dibuat untuk kebutuhan pembelajaran dan tugas kelompok.
+
+```text
+MISSION CLEAR
+╔══════════════════════════════════════╗
+║  Build app  : done                   ║
+║  Connect DB : done                   ║
+║  CRUD sync  : done                   ║
+║  Pew pew    : operational            ║
+╚══════════════════════════════════════╝
+```
