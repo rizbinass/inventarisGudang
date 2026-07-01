@@ -20,7 +20,7 @@ Aplikasi desktop untuk mengelola inventaris gudang menggunakan Java Swing, FlatL
 ```
 
 ```text
-ANGGOTA KELOMPOK UAS 
+ANGGOTA KELOMPOK UAS
 ┌────┬──────────────────────────────┬────────────────┐
 │ No │ Nama                         │ NIM            │
 ├────┼──────────────────────────────┼────────────────┤
